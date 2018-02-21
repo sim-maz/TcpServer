@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using SimpleTCP;
@@ -11,30 +12,81 @@ namespace TcpServer
     {
         private string _serverIp;
         private string _port;
-        private SimpleTcpServer _server;
+        private static bool _keepRunning;
+        private SimpleTcpServer _server; 
 
         static void Main(string[] args)
         {
             var tcpServer = new Program();
             tcpServer.GetServerSettings();
+            _keepRunning = true;
 
+            while (_keepRunning)
+            {
+                tcpServer.GetUserCommand();
+            }
+            tcpServer.StopConnection();
+        }
+
+        private void GetUserCommand()
+        {
+            
+            Console.WriteLine("To get a list of the possible commands type 'help'. ");
+            Console.WriteLine("Enter command: ");
+            var userCommand = Console.ReadLine();
+            switch (userCommand)
+            {
+                case "start":
+                {
+                    StartConnection();
+                    break;
+                }
+                case "stop":
+                {
+                    StopConnection();
+                    break;
+                }
+                case "configure":
+                {
+                    GetServerSettings();
+                    break;
+                }
+                case "quit":
+                {
+                    _keepRunning = false;
+                    break;
+                }
+                case "help":
+                {
+                    PrintHelp();
+                    break;
+                }
+                default:
+                {
+                    Console.WriteLine("Command '{0}' not found. Please try again...", userCommand);
+                    break;
+                }
+            }
+        }
+
+        private void PrintHelp()
+        {
+            Console.WriteLine("You can use the following commands:");
+            Console.WriteLine("'start' - start the server.");
+            Console.WriteLine("'stop' - stop the server");
+            Console.WriteLine("'configure' - configure the IP and port.");
+            Console.WriteLine("'quit' - close the application");
+            GetUserCommand();
         }
 
         private void GetServerSettings()
         {
-            _server = new SimpleTcpServer();
-            _server.Delimiter = 0x13;
-            _server.DataReceived += Server_DataReceived;
-
             Console.WriteLine("Configure your server settings.");
             Console.Write("Enter your server IP: ");
             _serverIp = Console.ReadLine();
 
             Console.WriteLine("Enter you server port: ");
             _port = Console.ReadLine();
-
-            Console.WriteLine("Your server: {0}", _serverIp);
-            Console.Read();
         }
 
         private void Server_DataReceived(object sender, Message e)
@@ -45,8 +97,25 @@ namespace TcpServer
 
         private void StartConnection()
         {
-            System.Net.IPAddress ip = new System.Net.IPAddress(long.Parse(_serverIp));
-            _server.Start(ip, Convert.ToInt32(_port));
+            _server = new SimpleTcpServer
+            {
+                Delimiter = 0x13,
+                StringEncoder = Encoding.UTF8
+            };
+            _server.DataReceived += Server_DataReceived;
+
+            Console.WriteLine("Server starting...");
+            try
+            {
+                System.Net.IPAddress ip = System.Net.IPAddress.Parse(_serverIp);
+                _server.Start(ip, Convert.ToInt32(_port));
+                Console.WriteLine("Server started...");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                Console.WriteLine("Server could not start. Please check configuration.");
+            }
         }
 
         private void StopConnection()
