@@ -51,6 +51,11 @@ namespace TcpServer
                     GetServerSettings();
                     break;
                 }
+                case "clients":
+                {
+                    GetConnectedClients();
+                    break;
+                }
                 case "quit":
                 {
                     _keepRunning = false;
@@ -91,8 +96,23 @@ namespace TcpServer
 
         private void Server_DataReceived(object sender, Message e)
         {
-            _serverIp += e.MessageString;
-            e.ReplyLine($"Server set to: {e.MessageString}");
+            string userMessage = null;
+            userMessage += e.MessageString;
+            Console.WriteLine(userMessage);
+            e.ReplyLine($"You said: {e.MessageString}");
+        }
+
+        private void GetConnectedClients()
+        {
+            if (_server.IsStarted)
+            {
+                var listeningIps = _server.GetListeningIPs();
+                Console.WriteLine("Currently connected {0} clients:", listeningIps.Count);
+                foreach (var ip in listeningIps)
+                {
+                    Console.WriteLine(ip.MapToIPv4().ToString());
+                }
+            }
         }
 
         private void StartConnection()
