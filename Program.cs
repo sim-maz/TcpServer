@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 using SimpleTCP;
 
 namespace TcpServer
@@ -27,6 +28,8 @@ namespace TcpServer
             }
             tcpServer.StopConnection();
         }
+
+        #region Server Commands
 
         private void GetUserCommand()
         {
@@ -96,14 +99,6 @@ namespace TcpServer
             Console.Write(_port);
         }
 
-        private void Server_DataReceived(object sender, Message e)
-        {
-            //string userMessage = null;
-            //userMessage += e.MessageString;
-            Console.WriteLine(e.MessageString);
-            e.ReplyLine($"You said: '{e.MessageString}'.");
-        }
-
         private void GetConnectedClients()
         {
             if (_server.IsStarted)
@@ -147,5 +142,52 @@ namespace TcpServer
             if (_server.IsStarted)
                 _server.Stop();
         }
+
+        #endregion
+
+        #region Events
+        private void Server_DataReceived(object sender, Message e)
+        {
+            //string userMessage = null;
+            //userMessage += e.MessageString;
+            Console.WriteLine(e.MessageString);
+            e.ReplyLine($"You said: '{e.MessageString}'.");
+        }
+        #endregion
+
+        #region FolderExplorer
+        private List<string>  GetFolderContents(string path)
+        {
+            List<string> contents;
+
+            var subdirectiores = GetSubdirectories(path);
+            foreach (var sub in subdirectiores)
+            {
+                contents.Add(sub);
+            }
+
+            var files = GetFiles(path);
+            foreach (var file in files)
+            {
+                contents.Add(file);
+            }
+
+            return contents;
+        }
+
+        private List<string> GetFiles(string path)
+        {
+            string[] fileEntries = Directory.GetFiles(path);
+            foreach (string fileName in fileEntries)
+                ProcessFile(fileName);
+        }
+
+        private List<string> GetSubdirectories(string path)
+        {
+            string[] subdirectoryEntries = Directory.GetDirectories(path);
+            foreach (string subdirectory in subdirectoryEntries)
+                ProcessDirectory(subdirectory);
+        }
+        #endregion
     }
 }
