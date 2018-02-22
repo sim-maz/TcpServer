@@ -32,7 +32,7 @@ namespace TcpServer
         {
             
             Console.WriteLine("To get a list of the possible commands type 'help'. ");
-            Console.WriteLine("Enter command: ");
+            Console.Write("Enter command: ");
             var userCommand = Console.ReadLine();
             switch (userCommand)
             {
@@ -80,8 +80,8 @@ namespace TcpServer
             Console.WriteLine("'start' - start the server.");
             Console.WriteLine("'stop' - stop the server");
             Console.WriteLine("'configure' - configure the IP and port.");
+            Console.WriteLine("'clients' - list the currently listening IPs.");
             Console.WriteLine("'quit' - close the application");
-            GetUserCommand();
         }
 
         private void GetServerSettings()
@@ -89,17 +89,19 @@ namespace TcpServer
             Console.WriteLine("Configure your server settings.");
             Console.Write("Enter your server IP: ");
             _serverIp = Console.ReadLine();
+            Console.Write(_serverIp);
 
-            Console.WriteLine("Enter you server port: ");
+            Console.Write("Enter you server port: ");
             _port = Console.ReadLine();
+            Console.Write(_port);
         }
 
         private void Server_DataReceived(object sender, Message e)
         {
-            string userMessage = null;
-            userMessage += e.MessageString;
-            Console.WriteLine(userMessage);
-            e.ReplyLine($"You said: {e.MessageString}");
+            //string userMessage = null;
+            //userMessage += e.MessageString;
+            Console.WriteLine(e.MessageString);
+            e.ReplyLine($"You said: '{e.MessageString}'.");
         }
 
         private void GetConnectedClients()
@@ -113,6 +115,8 @@ namespace TcpServer
                     Console.WriteLine(ip.MapToIPv4().ToString());
                 }
             }
+            else 
+                Console.WriteLine("Server is not running.");
         }
 
         private void StartConnection()
